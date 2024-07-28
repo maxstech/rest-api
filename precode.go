@@ -56,8 +56,8 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// post, endpoint /tasks
-func postTask(w http.ResponseWriter, r *http.Request) {
+// add endpoint /tasks
+func createTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	var buf bytes.Buffer
 
@@ -72,6 +72,10 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "Ошибка: ID уже существует", http.StatusConflict)
+		return
+	}
 	tasks[task.ID] = task
 
 	w.Header().Set("Content-Type", "application/json")
@@ -84,7 +88,7 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	task, ok := tasks[id]
 	if !ok {
-		http.Error(w, "Задача не найдена", http.StatusNoContent)
+		http.Error(w, "Задача не найдена", http.StatusBadRequest)
 		return
 	}
 
@@ -105,7 +109,7 @@ func delTask(w http.ResponseWriter, r *http.Request) {
 
 	_, ok := tasks[id]
 	if !ok {
-		http.Error(w, "Задача не найдена", http.StatusNoContent)
+		http.Error(w, "Задача не найдена", http.StatusBadRequest)
 		return
 	}
 
@@ -118,7 +122,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Get("/tasks", getTasks)
-	r.Post("/tasks", postTask)
+	r.Post("/tasks", createTask)
 	r.Get("/task/{id}", getTask)
 	r.Delete("/task/{id}", delTask)
 
